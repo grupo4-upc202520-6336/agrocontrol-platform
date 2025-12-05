@@ -17,9 +17,15 @@ public class ApiGatewayApplication {
     @Bean
     public CorsWebFilter corsWebFilter() {
          CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("*");
-        corsConfig.addAllowedMethod("*");
-        corsConfig.addAllowedHeader("*");
+      corsConfig.setAllowedOriginPatterns(Collections.singletonList("*")); 
+        
+        // Métodos permitidos
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        
+        // Cabeceras permitidas
+        corsConfig.setAllowedHeaders(Collections.singletonList("*"));
+        
+        // Permitir credenciales (cookies, authorization headers)
         corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -27,6 +33,4 @@ public class ApiGatewayApplication {
 
         return new CorsWebFilter(source);
     }
-
-
 }
