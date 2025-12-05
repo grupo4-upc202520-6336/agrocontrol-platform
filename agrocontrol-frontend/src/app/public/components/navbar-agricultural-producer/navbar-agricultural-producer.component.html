@@ -1,0 +1,17 @@
+<mat-toolbar color="primary" class="flex justify-between px-4 !bg-slate-800">
+  <div class="flex items-center space-x-4">
+    <!-- Ícono del menú -->
+    <button mat-icon-button (click)="onToggleSidenav()">
+      <mat-icon class="!text-white">menu</mat-icon>
+    </button>
+    <!-- Título de la aplicación -->
+    <span class="text-2xl font-bold"> <span class="!text-white" >Agro</span> <span class="!text-green-600">Control</span> </span>
+  </div>
+
+  <!-- Íconos de notificaciones y perfil -->
+  <div class="flex items-center space-x-4">
+    <app-language-switcher />
+    <!-- Icono de perfil -->
+    <mat-icon class="!text-white" [routerLink]="'/profile-producer/' + userId">account_circle</mat-icon>
+  </div>
+</mat-toolbar>

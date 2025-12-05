@@ -1,0 +1,211 @@
+version: '3.8'
+
+services:
+  # =========================================
+  # 1. INFRAESTRUCTURA DE DATOS
+  # =========================================
+  mysql:
+    image: mysql:8.0
+    container_name: agrocontrol-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: sasa
+      MYSQL_DATABASE: agrocontrol_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: agrocontrol-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - agro-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # =========================================
+  # 2. INFRAESTRUCTURA DE RED (DISCOVERY & GATEWAY)
+  # =========================================
+  service-registry:
+    build: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    networks:
+      - agro-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      # Clave JWT para validación
+      - AUTHORIZATION_JWT_SECRET=8Zz5tw0Ionm3XPZZfN0NOml3z9FMfmpgXwovR9fp6ryDIoGRM8EPHAB6iHsc0fb
+    depends_on:
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  # =========================================
+  # 3. MICROSERVICIOS DE NEGOCIO
+  # =========================================
+  
+  iam-service:
+    build: ./iam-service
+    container_name: iam-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_iam_db?createDatabaseIfNotExist=true
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  profile-service:
+    build: ./profile-service
+    container_name: profile-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_profile_db?createDatabaseIfNotExist=true
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  store-service:
+    build: ./store-service
+    container_name: store-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_store_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  fields-service:
+    build: ./fields-service
+    container_name: fields-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_fields_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  agricultural-process-service:
+    build: ./agricultural-process-service
+    container_name: agricultural-process-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_agricultural_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_payment_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  subscription-service:
+    build: ./subscription-service
+    container_name: subscription-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_subscription_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  finances-service:
+    build: ./finances-service
+    container_name: finances-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_finances_db?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    networks:
+      - agro-network
+
+  # =========================================
+  # 4. FRONTEND
+  # =========================================
+  frontend:
+    build: ./agrocontrol-frontend
+    container_name: agrocontrol-frontend
+    ports:
+      - "80:80" # Expone el puerto 80 del contenedor al puerto 80 de la máquina (acceso directo por IP)
+    networks:
+      - agro-network
+
+networks:
+  agro-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

@@ -1,0 +1,37 @@
+/* workers-field-table.component.css */
+.table-container {
+  overflow-x: auto; /* Permitir desplazamiento horizontal en dispositivos pequeños */
+  padding: 16px; /* Espaciado alrededor de la tabla */
+}
+
+.mat-table {
+  width: 100%; /* Hacer que la tabla ocupe todo el ancho disponible */
+}
+
+.mat-header-cell, .mat-cell {
+  padding: 8px; /* Espaciado en celdas */
+  text-align: left; /* Alinear texto a la izquierda */
+}
+
+.mat-header-cell {
+  font-weight: bold; /* Negrita en encabezados */
+  background-color: blue;
+}
+
+@media (max-width: 768px) {
+  .mat-header-cell, .mat-cell {
+    font-size: 14px; /* Tamaño de fuente más pequeño en pantallas pequeñas */
+  }
+}
+
+@media (max-width: 480px) {
+  .mat-header-cell, .mat-cell {
+    display: block; /* Hacer que las celdas se apilen verticalmente */
+    width: 100%; /* Asegurarse de que ocupen todo el ancho */
+  }
+
+  .mat-header-cell {
+    background-color: #f1f1f1; /* Fondo diferente para encabezados en móvil */
+    font-weight: bold; /* Negrita para encabezados */
+  }
+}

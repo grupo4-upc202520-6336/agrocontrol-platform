@@ -1,0 +1,36 @@
+--- Java / Maven ---
+
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+--- Node / Angular ---
+
+node_modules/
+dist/
+.angular/
+package-lock.json   # Opcional: a veces se quiere versionar, pero a veces da conflictos
+.npm/
+
+--- IDEs ---
+
+.idea/
+*.iml
+.vscode/
+*.swp
+
+--- Sistema Operativo ---
+
+.DS_Store
+Thumbs.db
+
+--- Logs y Temporales ---
+
+*.log
+tmp/
+temp/
