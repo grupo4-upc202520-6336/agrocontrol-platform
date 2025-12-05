@@ -7,6 +7,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 
+// --- ¡ESTAS SON LAS LÍNEAS QUE TE FALTABAN! ---
+import java.util.Arrays;
+import java.util.Collections;
+// ----------------------------------------------
+
 @SpringBootApplication
 public class ApiGatewayApplication {
 
@@ -16,16 +21,18 @@ public class ApiGatewayApplication {
 
     @Bean
     public CorsWebFilter corsWebFilter() {
-         CorsConfiguration corsConfig = new CorsConfiguration();
-      corsConfig.setAllowedOriginPatterns(Collections.singletonList("*")); 
+        CorsConfiguration corsConfig = new CorsConfiguration();
         
-        // Métodos permitidos
+        // 1. Permitir todos los orígenes (Patrón)
+        corsConfig.setAllowedOriginPatterns(Collections.singletonList("*")); 
+        
+        // 2. Permitir todos los métodos
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         
-        // Cabeceras permitidas
+        // 3. Permitir todas las cabeceras
         corsConfig.setAllowedHeaders(Collections.singletonList("*"));
         
-        // Permitir credenciales (cookies, authorization headers)
+        // 4. Permitir credenciales
         corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
