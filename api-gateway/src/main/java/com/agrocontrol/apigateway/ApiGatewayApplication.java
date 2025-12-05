@@ -17,7 +17,7 @@ public class ApiGatewayApplication {
     @Bean
     public CorsWebFilter corsWebFilter() {
          CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("http://localhost:4200");
+        corsConfig.addAllowedOrigin("*");
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
         corsConfig.setAllowCredentials(true);
