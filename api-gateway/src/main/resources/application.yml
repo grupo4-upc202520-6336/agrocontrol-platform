@@ -6,7 +6,8 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-  
+      globalcors:
+          add-to-simple-url-handler-mapping: false # <--- Esto es la clave
       routes:
         # --- RUTA 1: IAM SERVICE (Usuarios y Roles) ---
         - id: iam-service
