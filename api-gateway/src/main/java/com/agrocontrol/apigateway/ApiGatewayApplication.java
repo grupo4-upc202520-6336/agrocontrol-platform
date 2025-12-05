@@ -17,10 +17,12 @@ public class ApiGatewayApplication {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("http://localhost:4200");
-        corsConfig.addAllowedMethod("*");
-        corsConfig.addAllowedHeader("*");
-        corsConfig.setAllowCredentials(true);
+        
+        // PERMITIR TODO (La opción nuclear)
+        corsConfig.setAllowedOriginPatterns(Collections.singletonList("*")); // Usa patrones en lugar de Origins fijos
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        corsConfig.setAllowedHeaders(Collections.singletonList("*"));
+        corsConfig.setAllowCredentials(true); // Permitir cookies/tokens
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
