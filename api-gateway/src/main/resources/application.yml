@@ -6,21 +6,7 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      # Habilitar CORS globalmente para que Angular no se queje
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            # allowedOrigins: "*"
-            allowedOrigins:
-              - "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS # <--- ESTO SOLUCIONA EL TIMEOUT EN EL NAVEGADOR
-            allowedHeaders: "*"
-      
+  
       routes:
         # --- RUTA 1: IAM SERVICE (Usuarios y Roles) ---
         - id: iam-service
