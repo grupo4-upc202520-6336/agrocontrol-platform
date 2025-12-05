@@ -18,6 +18,7 @@ spring:
               - POST
               - PUT
               - DELETE
+              - OPTIONS # <--- ESTO SOLUCIONA EL TIMEOUT EN EL NAVEGADOR
             allowedHeaders: "*"
       
       routes:
