@@ -81,6 +81,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/agrocontrol_iam_db?createDatabaseIfNotExist=true
       - SPRING_RABBITMQ_HOST=rabbitmq
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
     depends_on:
       mysql:
         condition: service_healthy
