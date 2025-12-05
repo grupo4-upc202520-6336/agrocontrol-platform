@@ -57,30 +57,30 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // --- 1. CORS CONFIGURATION (ACTIVADO) ---
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    // ➡️ CORRECCIÓN: Desactivar CORS. El Gateway ya lo maneja.
+    http.cors(cors -> cors.disable()); 
 
-        http.csrf(csrf -> csrf.disable())
-            .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedRequestHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(
-                    "/api/v1/authentication/**",
-                    "/api/v1/roles/**",
-                    "/v3/api-docs/**",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/swagger-resources/**",
-                    "/webjars/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            );
+    http.csrf(csrf -> csrf.disable())
+        .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedRequestHandler))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(
+                "/api/v1/authentication/**",
+                "/api/v1/roles/**",
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/swagger-resources/**",
+                "/webjars/**"
+            ).permitAll()
+            .anyRequest().authenticated()
+        );
 
-        http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+    http.authenticationProvider(authenticationProvider());
+    http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+}
 
     // --- 2. BEAN DE CONFIGURACIÓN DE CORS ---
     @Bean
