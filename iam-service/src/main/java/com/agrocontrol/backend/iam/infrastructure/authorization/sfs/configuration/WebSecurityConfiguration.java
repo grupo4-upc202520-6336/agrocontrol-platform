@@ -1,7 +1,5 @@
 package com.agrocontrol.backend.iam.infrastructure.authorization.sfs.configuration;
 
-
-
 import com.agrocontrol.backend.iam.infrastructure.authorization.sfs.pipeline.BearerAuthorizationRequestFilter;
 import com.agrocontrol.backend.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import com.agrocontrol.backend.iam.infrastructure.tokens.jwt.BearerTokenService;
@@ -20,7 +18,10 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -28,36 +29,20 @@ import java.util.List;
 public class WebSecurityConfiguration {
 
     private final UserDetailsService userDetailsService;
-
     private final BearerTokenService tokenService;
-
     private final BCryptHashingService hashingService;
-
     private final AuthenticationEntryPoint unauthorizedRequestHandler;
 
-    /**
-     * This method creates the Bearer Authorization Request Filter.
-     * @return The Bearer Authorization Request Filter
-     */
     @Bean
     public BearerAuthorizationRequestFilter authorizationRequestFilter() {
         return new BearerAuthorizationRequestFilter(tokenService, userDetailsService);
     }
 
-    /**
-     * This method creates the authentication manager.
-     * @param authenticationConfiguration The authentication configuration
-     * @return The authentication manager
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    /**
-     * This method creates the authentication provider.
-     * @return The authentication provider
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         var authenticationProvider = new DaoAuthenticationProvider();
@@ -66,68 +51,59 @@ public class WebSecurityConfiguration {
         return authenticationProvider;
     }
 
-    /**
-     * This method creates the password encoder.
-     * @return The password encoder
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return hashingService;
     }
 
-    /**
-     * This method creates the security filter chain.
-     * It also configures the http security.
-     *
-     * @param http The http security
-     * @return The security filter chain
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.cors(configurer -> configurer.configurationSource(request -> {
-//            var cors = new CorsConfiguration();
-//
-//            // CAMBIO IMPORTANTE AQUÍ:
-//            // En lugar de "*", ponemos la URL exacta de tu Angular
-//            cors.setAllowedOrigins(List.of("http://localhost:4200"));
-//
-//            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-//            cors.setAllowedHeaders(List.of("*"));
-//
-//            // Opcional: Si en el futuro usas cookies o headers de autorización complejos
-//            cors.setAllowCredentials(true);
-//
-//            return cors;
-//        }));
+        // --- 1. CORS CONFIGURATION (ACTIVADO) ---
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.cors(cors -> cors.disable());
-
-        http.csrf(csrfConfigurer -> csrfConfigurer.disable())
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
-                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(
-                                "/api/v1/authentication/**",
-                                "/api/v1/roles/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/swagger-resources/**",
-                                "/webjars/**").permitAll()
-                        .anyRequest().authenticated());
+        http.csrf(csrf -> csrf.disable())
+            .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedRequestHandler))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(
+                    "/api/v1/authentication/**",
+                    "/api/v1/roles/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            );
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    /**
-     * This is the constructor of the class.
-     * @param userDetailsService The user details service
-     * @param tokenService The token service
-     * @param hashingService The hashing service
-     * @param authenticationEntryPoint The authentication entry point
-     */
+    // --- 2. BEAN DE CONFIGURACIÓN DE CORS ---
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Permitir todos los orígenes con Patrón (Seguro para credenciales)
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        
+        // Métodos permitidos
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        
+        // Cabeceras permitidas
+        configuration.setAllowedHeaders(List.of("*"));
+        
+        // Permitir Credenciales (Authorization header)
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     public WebSecurityConfiguration(@Qualifier("defaultUserDetailsService") UserDetailsService userDetailsService, BearerTokenService tokenService, BCryptHashingService hashingService, AuthenticationEntryPoint authenticationEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
